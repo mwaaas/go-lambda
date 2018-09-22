@@ -19,7 +19,7 @@ Resources:
         Name:
           Ref: Route53CNAME
         Type: CNAME
-        TTL: "900"
+        TTL: "30"
         ResourceRecords:
           - !Ref Endpoint
 Outputs:
