@@ -7,9 +7,9 @@ Parameters:
   HostedZoneId:
     Type: String
     Description: Route 53 hosted zone id
-  RequestValidatorStack:
+  Endpoint:
     Type: String
-    Description: Name of an active datase cloudformation stack
+
 Resources:
   Route53Record:
       Type: AWS::Route53::RecordSet
@@ -21,8 +21,7 @@ Resources:
         Type: CNAME
         TTL: "900"
         ResourceRecords:
-          - Fn::ImportValue:
-              Fn::Sub: "${RequestValidatorStack}-endpoint"
+          - !Ref Endpoint
 Outputs:
   ApiGatewayDNS:
     Description: request validator dns

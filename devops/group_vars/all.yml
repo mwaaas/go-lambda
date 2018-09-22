@@ -10,10 +10,13 @@ MemorySize: "128"
 
 BucketName: "{{ APP_NAME }}-bucket"
 
-HostedZoneId: Z3NGVBKBOR5QPJ
+HostedZoneId: ""
+HostedZoneName: ""
 
 
-Route53: "{{ APP_NAME }}-route53"
+Route53StackName: "{{ APP_NAME }}-route53"
+
+Route53CNAME: "{{ APP_NAME }}{{HostedZoneName}}"
 
 TagOwner: engineeringke
 TagEnvironment: development

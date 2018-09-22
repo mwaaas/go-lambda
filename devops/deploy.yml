@@ -85,14 +85,26 @@
           Classification: "{{ TagClassification }}"
           Status: "{{ TagStatus }}"
 
-#    - name: Update route53
-#      cloudformation:
-#        state: present
-#        stack_name: "{{ Route53 }}"
-#        region: "{{ AWS_REGION }}"
-#        disable_rollback: true
-#        template: templates/cloud_formation/route53.template.yml
-#        template_parameters:
-#          RequestValidatorStack: "{{ RequestValidatorStack }}"
-#          Route53CNAME: "{{ Route53CNAME }}.jumo.world."
-#          HostedZoneId: "{{ HostedZoneId }}"
+    - name: Get gateway  stack info
+      cloudformation_facts:
+        stack_name: "{{ API_GATEWAY }}"
+    - set_fact:
+        GatewayOutput: "{{vars['cloudformation'][API_GATEWAY]['stack_outputs']}}"
+
+    - name: Update route53
+      cloudformation:
+        state: present
+        stack_name: "{{ Route53StackName }}"
+        region: "{{ AWS_REGION }}"
+        disable_rollback: true
+        template: templates/cloud_formation/route53.template.yml
+        template_parameters:
+          Endpoint: "{{ GatewayOutput.RootUrl }}"
+          Route53CNAME: "{{ Route53CNAME }}"
+          HostedZoneId: "{{ HostedZoneId }}"
+        tags:
+          Name: "{{ BucketName }}"
+          Owner: "{{ TagOwner }}"
+          Environment: "{{ TagEnvironment }}"
+          Classification: "{{ TagClassification }}"
+          Status: "{{ TagStatus }}"
