@@ -1,0 +1,3 @@
+IMAGE_TAG: production
+
+Route53CNAME: api-gateway-swagger-validator

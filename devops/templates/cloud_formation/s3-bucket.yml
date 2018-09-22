@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Pre-reqs for Api gateway
+Parameters:
+  BucketName:
+    Type: String
+    Description: S3 Bucket name
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Join:
+        - "-"
+        - - Ref: BucketName
+          - Ref: AWS::Region
+
+Outputs:
+  BucketName:
+    Value:
+      !Ref Bucket

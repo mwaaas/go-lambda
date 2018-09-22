@@ -1,0 +1,98 @@
+---
+- hosts: all
+  gather_facts: no
+  connection: local
+  become: no
+  vars_files:
+    - ./group_vars/all.yml
+    - ./group_vars/{{ ENVIRONMENT }}.yml
+
+  tasks:
+
+    - name: zip app
+      shell: zip -j deployment.zip /usr/src/app/dist/main
+
+    - name: provison eb bucket
+      cloudformation:
+        region: "{{ AWS_REGION }}"
+        stack_name: "{{ BucketName }}"
+        template: templates/cloud_formation/s3-bucket.yml
+        disable_rollback: true
+        template_parameters:
+          BucketName: "{{ BucketName }}"
+        tags:
+          Name: "{{ BucketName }}"
+          Owner: "{{ TagOwner }}"
+          Environment: "{{ TagEnvironment }}"
+          Classification: "{{ TagClassification }}"
+          Status: "{{ TagStatus }}"
+
+    - name: Get s3  stack info
+      cloudformation_facts:
+        stack_name: "{{ BucketName }}"
+
+    - set_fact:
+        BucketFullName: "{{vars['cloudformation'][BucketName]['stack_outputs']['BucketName']}}"
+
+    - name: Upload release zip to S3
+      aws_s3:
+        region: "{{ AWS_REGION }}"
+        mode: put
+        src: "deployment.zip"
+        bucket: "{{ BucketFullName }}"
+        object: "{{ APP_VERSION }}_{{ APP_NAME }}.zip"
+
+
+    - name: deploy lambda
+      cloudformation:
+        region: "{{ AWS_REGION }}"
+        stack_name: "{{ APP_NAME }}"
+        template: templates/cloud_formation/lambda.template.yml
+        disable_rollback: true
+        template_parameters:
+          S3Bucket: "{{ BucketFullName }}"
+          S3Key: "{{ APP_VERSION }}_{{ APP_NAME }}.zip"
+          MemorySize: "{{ MemorySize }}"
+          RestApiName: "{{ APP_NAME }}"
+        tags:
+          Name: "{{ BucketName }}"
+          Owner: "{{ TagOwner }}"
+          Environment: "{{ TagEnvironment }}"
+          Classification: "{{ TagClassification }}"
+          Status: "{{ TagStatus }}"
+
+    - name: Get lambda  stack info
+      cloudformation_facts:
+        stack_name: "{{ APP_NAME }}"
+    - set_fact:
+        LambdaOutput: "{{vars['cloudformation'][APP_NAME]['stack_outputs']}}"
+
+    - name: deploy Api gateway
+      cloudformation:
+        region: "{{ AWS_REGION }}"
+        stack_name: "{{ API_GATEWAY }}"
+        template: templates/cloud_formation/api-gateway.template.yml
+        disable_rollback: true
+        template_parameters:
+          RestApiName: "{{ APP_NAME }}"
+          Lambda: "{{ LambdaOutput.Lambda}}"
+          LambdaArn: "{{ LambdaOutput.LambdaArn }}"
+          Environment: "{{ ENVIRONMENT }}"
+        tags:
+          Name: "{{ BucketName }}"
+          Owner: "{{ TagOwner }}"
+          Environment: "{{ TagEnvironment }}"
+          Classification: "{{ TagClassification }}"
+          Status: "{{ TagStatus }}"
+
+#    - name: Update route53
+#      cloudformation:
+#        state: present
+#        stack_name: "{{ Route53 }}"
+#        region: "{{ AWS_REGION }}"
+#        disable_rollback: true
+#        template: templates/cloud_formation/route53.template.yml
+#        template_parameters:
+#          RequestValidatorStack: "{{ RequestValidatorStack }}"
+#          Route53CNAME: "{{ Route53CNAME }}.jumo.world."
+#          HostedZoneId: "{{ HostedZoneId }}"

@@ -1,0 +1,4 @@
+dist
+.idea
+*.DS_Store
+devops/deployment.zip

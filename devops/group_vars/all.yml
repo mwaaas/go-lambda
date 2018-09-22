@@ -1,0 +1,21 @@
+IMAGE_TAG: test
+
+APP_NAME: "{{ ENVIRONMENT }}-go-lambda"
+API_GATEWAY: "{{ APP_NAME }}-gateway"
+
+AWS_REGION: eu-west-1
+
+
+MemorySize: "128"
+
+BucketName: "{{ APP_NAME }}-bucket"
+
+HostedZoneId: Z3NGVBKBOR5QPJ
+
+
+Route53: "{{ APP_NAME }}-route53"
+
+TagOwner: engineeringke
+TagEnvironment: development
+TagClassification: restricted
+TagStatus: active

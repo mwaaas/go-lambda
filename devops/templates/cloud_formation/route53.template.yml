@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Route53 for Request Validator
+Parameters:
+  Route53CNAME:
+    Description: 'CNAME to associate with request validator'
+    Type: String
+  HostedZoneId:
+    Type: String
+    Description: Route 53 hosted zone id
+  RequestValidatorStack:
+    Type: String
+    Description: Name of an active datase cloudformation stack
+Resources:
+  Route53Record:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId:
+          Ref: HostedZoneId
+        Name:
+          Ref: Route53CNAME
+        Type: CNAME
+        TTL: "900"
+        ResourceRecords:
+          - Fn::ImportValue:
+              Fn::Sub: "${RequestValidatorStack}-endpoint"
+Outputs:
+  ApiGatewayDNS:
+    Description: request validator dns
+    Value:
+      Ref: Route53CNAME

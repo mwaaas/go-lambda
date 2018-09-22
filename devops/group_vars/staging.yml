@@ -1,0 +1,3 @@
+IMAGE_TAG: staging
+
+Route53CNAME: api-gateway-swagger-validator-dev
